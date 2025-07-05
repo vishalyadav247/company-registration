@@ -1,0 +1,209 @@
+{% comment %}
+  {% assign avg_rating = block.settings.product.metafields.demo.avg_rating.value | round %}
+  <span style="color:{{ block.settings.colour }}">
+    {% render 'stars', rating: avg_rating %}
+  </span>
+  {% if avg_rating >= 4 %}
+    <br>
+    <img src="{{ "thumbs-up.png" | asset_img_url: '15x' }}" height="15" width="15" loading="lazy">
+    {{ 'ratings.home.recommendationText' | t }}
+  {% endif %}
+  <button id="cl">click</button>
+{% endcomment %}
+<style>
+  .business-registration-form {
+    margin: auto;
+    max-width: 600px;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+    color: #000;
+
+    .form-field {
+      margin-bottom: 15px;
+    }
+
+    .form-field label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+
+    .form-field input {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #ccc;
+      border-radius: 4px;
+    }
+
+    .form-field input[type='text'],
+    .form-field input[type='email'],
+    .form-field input[type='tel'] {
+      font-size: 14px;
+    }
+
+    .registration-submit-button {
+      background-color: {{ block.settings.btn-bg }};
+      opacity: 0.9;
+      color: #fff;
+      border: none;
+      padding: 10px 20px;
+      cursor: pointer;
+      border-radius: 4px;
+      font-size: 16px;
+      text-transform: uppercase;
+    }
+
+    .registration-submit-button:hover {
+      opacity: 1;
+    }
+    .registration-submit-button:disabled{
+      opacity: 0.7;
+      cursor: not-allowed;
+    }
+    .registration-submit-button .loading__spinner{
+      display: none;
+    }
+    .registration-submit-button:disabled .loading__spinner{
+      display: block;
+    }
+  }
+</style>
+
+<div class="business-registration-form">
+  <form class="business-form" id="business-form">
+    <div class="form-field">
+      <label for="business_name">Name of the Business</label>
+      <input type="text" id="business_name" name="business_name" required placeholder="Enter Business Name">
+    </div>
+
+    <div class="form-field">
+      <label for="business_address">Business Address</label>
+      <input
+        type="text"
+        id="business_address"
+        name="business_address"
+        required
+        placeholder="Enter Full Business Address"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="gst_number">GST Number</label>
+      <input
+        type="text"
+        id="gst_number"
+        name="gst_number"
+        required
+        placeholder="Enter GST Number"
+        pattern="^[0-9]{15}$"
+        title="Enter a valid 15-digit GST number"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="mobile_number">Mobile Number</label>
+      <input
+        type="tel"
+        id="mobile_number"
+        name="mobile_number"
+        required
+        placeholder="Enter Mobile Number"
+        pattern="^[0-9]{10}$"
+        title="Enter a valid 10-digit mobile number"
+      >
+    </div>
+
+    <div class="form-field">
+      <label for="email">Business Email</label>
+      <input type="email" id="email" name="email" required placeholder="Enter Business Email">
+    </div>
+
+    <button type="submit" class="registration-submit-button button">
+      Register Business
+      <div class="loading__spinner" bis_skin_checked="1">
+        <svg xmlns="http://www.w3.org/2000/svg" class="spinner" viewBox="0 0 66 66">
+          <circle stroke-width="6" cx="33" cy="33" r="30" fill="none" class="path"></circle>
+        </svg>
+      </div>
+    </button>
+  </form>
+</div>
+
+{% schema %}
+{
+  "name": "Registration Form",
+  "target": "section",
+  "settings": [
+    { "type": "url", "id": "redirect-link", "label": "Redirect Url" },
+    { "type": "color", "id": "btn-bg", "label": "Button Background", "default": "#3573ff" }
+  ]
+}
+{% endschema %}
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // if company already registered, redirect to home page ( no access to registration form )
+    try {
+      const company = JSON.parse(localStorage.getItem('company'));
+      if (company) {
+        window.location.href = '/';
+        return;
+      }
+    } catch (e) {
+      console.log('error redirect to home if company exists', e);
+    }
+
+    let registrationForm = document.getElementById('business-form');
+    let registrationLink = document.getElementById('registration-link');
+
+    registrationForm.addEventListener('submit', function (event) {
+      event.preventDefault();
+      const submitBtn = document.querySelector('.registration-submit-button');
+      submitBtn.disabled = true;
+      const formData = new FormData(this);
+
+      const data = {
+        shop: '{{ shop.domain }}',
+        name: formData.get('business_name'),
+        address: formData.get('business_address'),
+        gstNumber: formData.get('gst_number'),
+        mobileNumber: formData.get('mobile_number'),
+        email: formData.get('email'),
+      };
+
+      fetch(`/apps/company-registration/companies`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      })
+        .then(async (response) => {
+          let respData;
+          try {
+            respData = await response.json();
+          } catch (e) {
+            respData = {};
+          }
+          if (response.ok && respData.message === 'Company created successfully') {
+            localStorage.setItem('company', JSON.stringify(respData.company));
+            registrationLink.innerText = `Welcome ${respData.company.name}`;
+            registrationLink.href = '/';
+            window.location.href = '{{ block.settings.redirect-link }}';
+          } else {
+            // Show error from server (e.g., duplicate)
+            let errorMsg = respData && respData.message ? respData.message : 'Registration failed. Please try again.';
+            alert(errorMsg);
+            submitBtn.disabled = false;
+          }
+        })
+        .catch((error) => {
+          alert('An unexpected error occurred. Please try again.');
+          console.error('Error:', error);
+          submitBtn.disabled = false;
+        });
+    });
+  });
+</script>

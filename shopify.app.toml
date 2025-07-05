@@ -1,0 +1,24 @@
+# Learn more about configuring your app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+client_id = "cc64e74cba8f6ce24463bb3910ddb555"
+name = "Company Registration"
+handle = "company-registration"
+application_url = "https://works-independence-ladies-voting.trycloudflare.com"
+embedded = true
+
+[build]
+include_config_on_deploy = true
+automatically_update_urls_on_dev = true
+
+[webhooks]
+api_version = "2025-04"
+
+[access_scopes]
+# Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
+scopes = "write_products"
+
+[auth]
+redirect_urls = ["https://works-independence-ladies-voting.trycloudflare.com/auth/callback", "https://works-independence-ladies-voting.trycloudflare.com/auth/shopify/callback", "https://works-independence-ladies-voting.trycloudflare.com/api/auth/callback"]
+
+[pos]
+embedded = false
