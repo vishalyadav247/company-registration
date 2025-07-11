@@ -146,13 +146,13 @@
   document.addEventListener('DOMContentLoaded', function () {
     // if company already registered, redirect to home page ( no access to registration form )
     try {
-      const company = JSON.parse(localStorage.getItem('company'));
-      if (company) {
+      const customer = JSON.parse(localStorage.getItem('customer'));
+      if (customer) {
         window.location.href = '/';
         return;
       }
     } catch (e) {
-      console.log('error redirect to home if company exists', e);
+      console.log('error in redirect to home if customer exists', e);
     }
 
     let registrationForm = document.getElementById('business-form');
@@ -164,7 +164,7 @@
       submitBtn.disabled = true;
       const formData = new FormData(this);
 
-      const data = {
+      const payload = {
         shop: '{{ shop.domain }}',
         name: formData.get('business_name'),
         address: formData.get('business_address'),
@@ -173,12 +173,12 @@
         email: formData.get('email'),
       };
 
-      fetch(`/apps/company-registration/companies`, {
+      fetch(`/apps/company-registration/customers`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(data),
+        body: JSON.stringify(payload),
       })
         .then(async (response) => {
           let respData;
@@ -187,9 +187,9 @@
           } catch (e) {
             respData = {};
           }
-          if (response.ok && respData.message === 'Company created successfully') {
-            localStorage.setItem('company', JSON.stringify(respData.company));
-            registrationLink.innerText = `Welcome ${respData.company.name}`;
+          if (response.ok && respData.message === 'Customer created successfully') {
+            localStorage.setItem('customer', JSON.stringify(respData.customer));
+            registrationLink.innerText = `Welcome ${respData.customer.name}`;
             registrationLink.href = '/';
             window.location.href = '{{ block.settings.redirect-link }}';
           } else {

@@ -1,23 +1,7 @@
 import mongoose from "mongoose";
 const {Schema} = mongoose;
 
-const productSchema = new Schema({
-    shop:{
-        type:String,
-        required:true,
-        index:true
-    },
-    shopifyId:{
-        type:String,
-        required:true
-    },
-    title: {
-        type: String,
-        required: true
-    }
-})
-
-const companySchema = new mongoose.Schema(
+const customerSchema = new mongoose.Schema( 
     {   
         shop:{
             type:String,
@@ -50,7 +34,6 @@ const companySchema = new mongoose.Schema(
     {timestamps:true}
 )
 
-const Product = mongoose.model("Shopify Product",productSchema);
-const Company = mongoose.model('Company',companySchema)
+const Customer = mongoose.model('Customer',customerSchema)
 
-export {Product,Company};
+export {Customer};

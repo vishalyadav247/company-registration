@@ -3,7 +3,7 @@
 client_id = "cc64e74cba8f6ce24463bb3910ddb555"
 name = "Company Registration"
 handle = "company-registration"
-application_url = "https://works-independence-ladies-voting.trycloudflare.com"
+application_url = "https://rim-mx-anymore-annex.trycloudflare.com"
 embedded = true
 
 [build]
@@ -15,10 +15,10 @@ api_version = "2025-04"
 
 [access_scopes]
 # Learn more at https://shopify.dev/docs/apps/tools/cli/configuration#access_scopes
-scopes = "write_products"
+scopes = "write_products,read_products"
 
 [auth]
-redirect_urls = ["https://works-independence-ladies-voting.trycloudflare.com/auth/callback", "https://works-independence-ladies-voting.trycloudflare.com/auth/shopify/callback", "https://works-independence-ladies-voting.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://rim-mx-anymore-annex.trycloudflare.com/auth/callback", "https://rim-mx-anymore-annex.trycloudflare.com/auth/shopify/callback", "https://rim-mx-anymore-annex.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false

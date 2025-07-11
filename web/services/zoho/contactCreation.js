@@ -3,7 +3,6 @@ import { getZohoAccessToken } from "./getToken.js";
 
 export async function createZohoContact({ name, gstNumber, mobileNumber, email, address }) {
     const accessToken = await getZohoAccessToken();
-
     const lname = ""
     const city = "";
     const state = "";
@@ -52,15 +51,26 @@ export async function createZohoContact({ name, gstNumber, mobileNumber, email, 
         "gst_no": gstNumber
     }
 
-    const response = await axios.post(
-        `https://www.zohoapis.in/books/v3/contacts?organization_id=${process.env.ZOHO_ORG_ID}`,
-        zohoContact,
-        {
-            headers: {
-                Authorization: `Zoho-oauthtoken ${accessToken}`,
-                "Content-Type": "application/json"
+    try {
+        const response = await axios.post(
+            `https://www.zohoapis.in/inventory/v1/contacts?organization_id=${process.env.ZOHO_ORG_ID}`,
+            zohoContact,
+            {
+                headers: {
+                    Authorization: `Zoho-oauthtoken ${accessToken}`,
+                    "Content-Type": "application/json"
+                }
             }
+        );
+        return response.data;
+    } catch (error) {
+        if (error.response) {
+            console.error('Zoho API Error:', error.response.status, error.response.data);
+        } else if (error.request) {
+            console.error('No response received from Zoho:', error.request);
+        } else {
+            console.error('Error in request setup:', error.message);
         }
-    );
-    return response.data;
+        throw error;
+    }
 }

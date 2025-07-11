@@ -29,6 +29,8 @@ export default function Overview() {
   const { mode, setMode } = useSetIndexFiltersMode();
   const rowsPerPage = 14;
 
+  const [products, setProducts] = useState([]);
+
   // Fetch companies on mount/refresh
   useEffect(() => {
     fetchCompanies();
@@ -37,7 +39,7 @@ export default function Overview() {
   const fetchCompanies = async () => {
     setLoading(true);
     try {
-      let url = `/api/companies?shop=${encodeURIComponent(appBridge.config.shop)}`;
+      let url = `/api/customers?shop=${encodeURIComponent(appBridge.config.shop)}`;
       const response = await fetch(
         url,
         {
@@ -129,6 +131,25 @@ export default function Overview() {
   const handlePrevious = () => setCurrentPage((prev) => Math.max(prev - 1, 1));
   const handleNext = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
 
+  const syncProducts = async () => {
+    setLoading(true);
+    try {
+      let url = `/api/sync-products?shop=${encodeURIComponent(appBridge.config.shop)}`;
+      const response = await fetch(
+        url,
+        {
+          method: "get",
+          headers: { "Content-Type": "application/json" },
+        }
+      );
+      const data = await response.json();
+      console.log('product sync start',data)
+    } catch (error) {
+      console.error("Error syncing products:", error);
+    }
+    setLoading(false);
+  };
+
   return (
     <Page fullWidth>
       <LegacyCard >
@@ -177,6 +198,12 @@ export default function Overview() {
                 onClick={fetchCompanies}
               />
           </Tooltip>
+           <Button
+                variant="secondary"
+                icon={RefreshIcon}
+                loading={loading}
+                onClick={syncProducts}
+              >Products</Button>
         </div>
         {loading ? (
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "20px", minHeight: "541px" }}>

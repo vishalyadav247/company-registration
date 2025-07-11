@@ -3,13 +3,14 @@ import { join } from "path";
 import { readFileSync } from "fs";
 import express from "express";
 import serveStatic from "serve-static";
-import {connectDB} from "./mongodb/db.js";
-import companyRoutes from "./routes/companyRoutes.js";
+import {connectDB} from "./utils/db.js";
+import customerRoutes from "./routes/customerRoutes.js";
+import { connectRedis } from "./services/cache/redis.js";
 
 import shopify from "./shopify.js";
 import PrivacyWebhookHandlers from "./privacy.js";
 
-import { productCount, syncProducts } from "./controllers/controller.js";
+import { productCount, syncProducts } from "./controllers/product/productControllers.js";
 
 const PORT = parseInt(
   process.env.BACKEND_PORT || process.env.PORT || "3000",
@@ -37,7 +38,7 @@ app.post(
 
 app.use(express.json());
 
-app.use("/api/companies", companyRoutes);
+app.use("/api/customers", customerRoutes);
 // If you are adding routes outside of the /api path, remember to
 // also add a proxy rule for them in web/frontend/vite.config.js
 
@@ -65,7 +66,8 @@ app.use("/*", shopify.ensureInstalledOnShop(), async (_req, res, _next) => {
 // connect db => start server
 (async () => {
   try {
-    await connectDB(); 
+    await connectDB();
+    await connectRedis(); 
     app.listen(PORT,()=>{
       console.log(`server running on port ${PORT}`)
     });
