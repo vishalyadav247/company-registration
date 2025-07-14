@@ -8,7 +8,13 @@ import customerRoutes from "./routes/customerRoutes.js";
 import { connectRedis } from "./services/cache/redis.js";
 
 import shopify from "./shopify.js";
+
 import PrivacyWebhookHandlers from "./privacy.js";
+import AdditionalWebhookHandelers from "./services/shopify_webhooks/webhooks.js"
+
+const CombinedWebhookHandlers = {
+  ...PrivacyWebhookHandlers,...AdditionalWebhookHandelers
+}
 
 import { productCount, syncProducts } from "./controllers/product/productControllers.js";
 
@@ -33,7 +39,7 @@ app.get(
 );
 app.post(
   shopify.config.webhooks.path,
-  shopify.processWebhooks({ webhookHandlers: PrivacyWebhookHandlers })
+  shopify.processWebhooks({ webhookHandlers: CombinedWebhookHandlers })
 );
 
 app.use(express.json());

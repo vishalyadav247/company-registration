@@ -5,6 +5,7 @@ const ZOHO_TOKEN_KEY = 'zoho:access_token';
 
 export async function getZohoAccessToken() {
   let accessToken = await redisClient.get(ZOHO_TOKEN_KEY);
+  console.log('access token cache', accessToken)
   if (accessToken) {
     return accessToken;
   }
@@ -20,9 +21,9 @@ export async function getZohoAccessToken() {
 
   accessToken = response.data.access_token;
   const expiresIn = response.data.expires_in || 3600;
-console.log('newtoken',accessToken)
+  console.log('new generated token', accessToken)
   // Cache the token in Redis (expires 60s before actual expiry)
-  await redisClient.set(ZOHO_TOKEN_KEY,accessToken, 'EX', expiresIn - 60);
-
+  await redisClient.set(ZOHO_TOKEN_KEY, accessToken );
+  await redisClient.expire(ZOHO_TOKEN_KEY, expiresIn - 60);
   return accessToken;
 }

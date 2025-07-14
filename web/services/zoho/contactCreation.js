@@ -3,6 +3,7 @@ import { getZohoAccessToken } from "./getToken.js";
 
 export async function createZohoContact({ name, gstNumber, mobileNumber, email, address }) {
     const accessToken = await getZohoAccessToken();
+      console.log('result access token',accessToken)
     const lname = ""
     const city = "";
     const state = "";

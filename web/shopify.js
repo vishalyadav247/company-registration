@@ -2,6 +2,7 @@ import { BillingInterval, LATEST_API_VERSION } from "@shopify/shopify-api";
 import { shopifyApp } from "@shopify/shopify-app-express";
 import { MongoDBSessionStorage } from "@shopify/shopify-app-session-storage-mongodb";
 import { restResources } from "@shopify/shopify-api/rest/admin/2025-04";
+import AdditionalWebhookHandelers from './services/shopify_webhooks/webhooks.js'
 import "dotenv/config";
 
 const DB_PATH = process.env.DB_URI;
@@ -37,6 +38,36 @@ const shopify = shopifyApp({
   },
   // This should be replaced with your preferred storage strategy
   sessionStorage: new MongoDBSessionStorage(DB_PATH),
+  // 👇 Add afterAuth here!
+  afterAuth: async ({ session, shop, accessToken, res, req }) => {
+    
+    try {
+      // Register single webhook here
+      
+      // const regResult = await shopify.webhooks.register({
+      //   session,
+      //   path: shopify.config.webhooks.path,
+      //   topic: 'PRODUCTS_UPDATE',
+      //   webhookHandler: AdditionalWebhookHandelers.PRODUCTS_UPDATE.callback,
+      // });
+
+      // register all handlers in one loop
+      for (const [topic, handler] of Object.entries(AdditionalWebhookHandelers)) {
+        let regResult = await shopify.webhooks.register({
+          session,
+          path: shopify.config.webhooks.path,
+          topic,
+          webhookHandler: handler.callback,
+        });
+        console.log('Webhook registration result:', regResult);
+      }
+      
+    } catch (err) {
+      console.error('Webhook registration failed:', err);
+    }
+    // Optionally, redirect if you want to customize the post-auth behavior
+    // res.redirect(`/your-app-path?shop=${shop}`);
+  },
 });
 
 export default shopify;
