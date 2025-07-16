@@ -2,8 +2,9 @@ import { BillingInterval, LATEST_API_VERSION } from "@shopify/shopify-api";
 import { shopifyApp } from "@shopify/shopify-app-express";
 import { MongoDBSessionStorage } from "@shopify/shopify-app-session-storage-mongodb";
 import { restResources } from "@shopify/shopify-api/rest/admin/2025-04";
-import AdditionalWebhookHandelers from './services/shopify_webhooks/webhooks.js'
 import "dotenv/config";
+
+import AdditionalWebhookHandelers from './services/webhooks/shopify_webhooks.js'
 
 const DB_PATH = process.env.DB_URI;
 

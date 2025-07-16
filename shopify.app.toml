@@ -3,7 +3,7 @@
 client_id = "cc64e74cba8f6ce24463bb3910ddb555"
 name = "Company Registration"
 handle = "company-registration"
-application_url = "https://fo-constitutional-photo-graph.trycloudflare.com"
+application_url = "https://bridges-baghdad-delicious-celebrities.trycloudflare.com"
 embedded = true
 
 [build]
@@ -18,7 +18,7 @@ api_version = "2025-04"
 scopes ="read_products,write_products,read_orders"
 
 [auth]
-redirect_urls = ["https://fo-constitutional-photo-graph.trycloudflare.com/auth/callback", "https://fo-constitutional-photo-graph.trycloudflare.com/auth/shopify/callback", "https://fo-constitutional-photo-graph.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://bridges-baghdad-delicious-celebrities.trycloudflare.com/auth/callback", "https://bridges-baghdad-delicious-celebrities.trycloudflare.com/auth/shopify/callback", "https://bridges-baghdad-delicious-celebrities.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false

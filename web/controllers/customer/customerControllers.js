@@ -9,14 +9,14 @@ export const createCustomer = async (req, res) => {
   try {
     const newCustomer = new Customer({ shop, name, address, gstNumber, mobileNumber, email });
     await newCustomer.save();
-    let zohoResponse = await createZohoContact({
+    let response = await createZohoContact({
       name,
       gstNumber,
       mobileNumber,
       email,
       address 
     });
-    if(zohoResponse.message === 'The contact has been added.') {
+    if(response.message === 'The contact has been added.') {
       let newCustomer = await Customer.findOneAndUpdate(
         { email: email },
         { zohoContactStatus: 'created' },
