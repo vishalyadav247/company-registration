@@ -3,38 +3,27 @@ import { createZohoContact } from '../../services/zoho/contactCreation.js';
 
 // Create a new customer
 export const createCustomer = async (req, res) => {
-  
-  const { shop, name, address, gstNumber, mobileNumber, email } = req.body;
+
+  const contact = req.body;
 
   try {
-    const newCustomer = new Customer({ shop, name, address, gstNumber, mobileNumber, email });
-    await newCustomer.save();
-    let response = await createZohoContact({
-      name,
-      gstNumber,
-      mobileNumber,
-      email,
-      address 
-    });
-    if(response.message === 'The contact has been added.') {
-      let newCustomer = await Customer.findOneAndUpdate(
-        { email: email },
-        { zohoContactStatus: 'created' },
-        { new: true }
-      );
-      return res.status(201).json({ message: 'Customer created successfully', customer: newCustomer });
-    }
-    res.status(201).json({ message: 'Customer created successfully', customer: newCustomer });
-  } catch (error) {
-    // Check for duplicate key errors (unique constraint violations)
-    if (error.code === 11000) {
-      return res.status(400).json({
-        message: `Customer with this ${Object.keys(error.keyValue)[0]} already exists.`,
-      });
-    }
 
-    // Handle other errors
-    res.status(500).json({ message: 'error creating customer', error: error.message });
+    const existingContact = await Customer.findOne({ email: contact.email })
+    if (existingContact) {
+      return res.status(400).json({ message: `Customer with ${contact.email} is already exists.` });
+    }
+    const response = await createZohoContact(contact);
+    if (response.message === 'The contact has been added.') {
+      const aditionProperties = {
+        zohoContactStatus: 'created',
+        customer_id: response.contact.contact_id
+      }
+      const newCustomer = new Customer({ ...contact, ...aditionProperties });
+      await newCustomer.save();
+      return res.status(201).json({ message: response.message, customer: newCustomer });
+    }
+  } catch (error) {
+    res.status(400).json({ message: error.response.data.message });
   }
 };
 

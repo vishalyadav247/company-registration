@@ -1,14 +1,19 @@
 import axios from "axios";
-import { getZohoAccessToken, getZohoItemIdBySKU, createZohoInvoice } from "./utilityFunctions.js";
-
 const orgId = process.env.ZOHO_ORG_ID;
+
+import { getZohoAccessToken } from "./utilityFunctions.js";
+import createZohoInvoice from "./invoiceCreation.js";
+import { Product } from "../../models/product/productModels.js";
+
 
 async function mapLineItems(shopifyLineItems) {
   const result = [];
   for (const item of shopifyLineItems) {
-    const zohoItemId = await getZohoItemIdBySKU(item.sku);
+    const dbProduct = await Product.findOne({ sku: item.sku })
+    const zohoItemId = dbProduct.zoho_item_id;
+
     if (!zohoItemId) {
-      throw new Error(`No Zoho item_id found for SKU: ${item.sku}`);
+      throw new Error(`No item_id found in app db for SKU: ${item.sku}`);
     }
     result.push({
       item_id: zohoItemId,
@@ -31,6 +36,7 @@ export default async function createZohoSalesOrder(shopifyOrder, zohoCustomerId)
   const orderDate = (shopifyOrder.created_at || "").split("T")[0];
   // Map line items
   const lineItems = await mapLineItems(shopifyOrder.line_items);
+
   // Basic sales order payload
   const payload =
   {
@@ -68,27 +74,25 @@ export default async function createZohoSalesOrder(shopifyOrder, zohoCustomerId)
 
     if (response.data.code === 0) {
 
-      await fetch(`https://www.zohoapis.in/inventory/v1/salesorders/${response.data.salesorder.salesorder_id}/status/confirmed?organization_id=${orgId}`, {
+      const confirmOrderRes = await fetch(`https://www.zohoapis.in/inventory/v1/salesorders/${response.data.salesorder.salesorder_id}/status/confirmed?organization_id=${orgId}`, {
         method: 'POST',
         headers: {
           Authorization: `Zoho-oauthtoken ${accessToken}`
         }
       })
-        .then(response => response.json())
-        .then(response => console.log('abc', response))
-        .catch(err => console.error(err));
 
-      await fetch(`https://www.zohoapis.in/inventory/v1/salesorders/${response.data.salesorder.salesorder_id}?organization_id=${orgId}`, {
+      const confirmOrderData = await confirmOrderRes.json()
+
+      const freshOrderRes = await fetch(`https://www.zohoapis.in/inventory/v1/salesorders/${response.data.salesorder.salesorder_id}?organization_id=${orgId}`, {
         method: 'GET',
         headers: {
           Authorization: `Zoho-oauthtoken ${accessToken}`
         }
       })
-        .then(response => response.json())
-        .then((response) => {
-          createZohoInvoice(response)
-        })
-        .catch(err => console.error(err));
+
+      const freshOrderData = await freshOrderRes.json();
+      console.log(response.data.message + " & " + confirmOrderData.message)
+      return freshOrderData;
     } else {
       console.error("Error creating Zoho Sales Order:", response.data.message);
       return null;

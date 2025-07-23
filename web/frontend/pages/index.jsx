@@ -22,6 +22,7 @@ export default function Overview() {
 
   const appBridge = useAppBridge();
   const [loading, setLoading] = useState(false);
+  const [loadingProduct, setLoadingProduct] = useState(false);
   const [companies, setCompanies] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -53,6 +54,9 @@ export default function Overview() {
       console.error("Error fetching companies:", error);
     }
     setLoading(false);
+    appBridge.toast.show('Company list refreshed', {
+      duration: 3000,
+    });
   };
 
   // Search companies
@@ -60,11 +64,11 @@ export default function Overview() {
     if (
       queryValue &&
       !(
-        c.name?.toLowerCase().includes(queryValue.toLowerCase()) ||
+        c.first_name?.toLowerCase().includes(queryValue.toLowerCase()) ||
         c.email?.toLowerCase().includes(queryValue.toLowerCase()) ||
-        c.mobileNumber?.toLowerCase().includes(queryValue.toLowerCase()) ||
-        c.gstNumber?.toLowerCase().includes(queryValue.toLowerCase()) ||
-        c.address?.toLowerCase().includes(queryValue.toLowerCase())
+        c.phone?.toLowerCase().includes(queryValue.toLowerCase()) ||
+        c.gst_number?.toLowerCase().includes(queryValue.toLowerCase()) ||
+        c.state?.toLowerCase().includes(queryValue.toLowerCase())
       )
     ) {
       return false;
@@ -100,11 +104,11 @@ export default function Overview() {
       <IndexTable.Cell>
         <Text as="span" fontWeight="semibold">{(currentPage - 1) * rowsPerPage + index + 1}</Text>
       </IndexTable.Cell>
-      <IndexTable.Cell>{company.name}</IndexTable.Cell>
+      <IndexTable.Cell>{company.first_name}</IndexTable.Cell>
       <IndexTable.Cell>{company.email}</IndexTable.Cell>
-      <IndexTable.Cell>{company.mobileNumber}</IndexTable.Cell>
-      <IndexTable.Cell>{company.gstNumber}</IndexTable.Cell>
-      <IndexTable.Cell>{company.address}</IndexTable.Cell>
+      <IndexTable.Cell>{company.phone}</IndexTable.Cell>
+      <IndexTable.Cell>{company.gst_number}</IndexTable.Cell>
+      <IndexTable.Cell>{company.state}</IndexTable.Cell>
       <IndexTable.Cell>
         <Badge
           tone={company.zohoContactStatus === "created" ? "success" : ""}
@@ -132,7 +136,7 @@ export default function Overview() {
   const handleNext = () => setCurrentPage((prev) => Math.min(prev + 1, totalPages));
 
   const syncProducts = async () => {
-    setLoading(true);
+    setLoadingProduct(true);
     try {
       let url = `/api/sync-products?shop=${encodeURIComponent(appBridge.config.shop)}`;
       const response = await fetch(
@@ -143,17 +147,20 @@ export default function Overview() {
         }
       );
       const data = await response.json();
-      console.log('product sync start',data)
+      console.log('product sync start', data)
     } catch (error) {
       console.error("Error syncing products:", error);
     }
-    setLoading(false);
+    setLoadingProduct(false);
+    appBridge.toast.show('All product synced to zoho', {
+      duration: 3000,
+    });
   };
 
   return (
     <Page fullWidth>
       <LegacyCard >
-        <div style={{ display: 'flex', alignItems: 'center', gap: 5,padding:'0 13px',borderBottom: 'var(--p-border-width-025) solid var(--p-color-border)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '0 13px', borderBottom: 'var(--p-border-width-025) solid var(--p-color-border)' }}>
           <Text as="p" variant="bodyLg" fontWeight="medium">List of Companies</Text>
           <div style={{ flex: 1 }}>
             <IndexFilters
@@ -161,7 +168,7 @@ export default function Overview() {
               sortSelected={[]}
               onSort={() => { }}
               queryValue={queryValue}
-              queryPlaceholder="Search by name, email, phone, GST, address"
+              queryPlaceholder="Search by name, email, phone, GST, state"
               onQueryChange={setQueryValue}
               onQueryClear={() => setQueryValue("")}
               filters={""}
@@ -182,7 +189,7 @@ export default function Overview() {
               setMode={setMode}
             />
           </div>
-          
+
           <Tooltip
             preferredPosition="above"
             content={
@@ -192,18 +199,27 @@ export default function Overview() {
             }
           >
             <Button
-                variant="secondary"
-                icon={RefreshIcon}
-                loading={loading}
-                onClick={fetchCompanies}
-              />
+              variant="secondary"
+              icon={RefreshIcon}
+              loading={loading}
+              onClick={fetchCompanies}
+            />
           </Tooltip>
-           <Button
-                variant="secondary"
-                icon={RefreshIcon}
-                loading={loading}
-                onClick={syncProducts}
-              >Products</Button>
+          <Tooltip
+            preferredPosition="above"
+            content={
+              <InlineStack gap="200">
+                Sync Product to zoho
+              </InlineStack>
+            }
+          >
+            <Button
+              variant="secondary"
+              icon={RefreshIcon}
+              loading={loadingProduct}
+              onClick={syncProducts}
+            >Products </Button>
+          </Tooltip>
         </div>
         {loading ? (
           <div style={{ display: "flex", justifyContent: "center", alignItems: "center", padding: "20px", minHeight: "541px" }}>
@@ -222,7 +238,7 @@ export default function Overview() {
               { title: "Email" },
               { title: "Phone" },
               { title: "GST Number" },
-              { title: "Address" },
+              { title: "State" },
               { title: "Zoho Contact Status" },
             ]}
             condensed={false}

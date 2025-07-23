@@ -8,27 +8,46 @@ const customerSchema = new mongoose.Schema(
             required:true,
             index:true
         },
-        name: {
+        first_name: {
             type: String,
             trim: true
-        },
-        address: {
-            type: String,
-            trim: true
-        },
-        gstNumber: {
-            type: String,
-        },
-        mobileNumber: {
-            type: String,
         },
         email: {
             type: String,
             required:true,
             unique: true,
         },
+        phone: {
+            type: String,
+        },
+        address: {
+            type: String,
+            trim: true
+        },
+        city: {
+            type: String,
+            trim: true
+        },
+        state: {
+            type: String,
+            trim: true
+        },
+        zip: {
+            type: String,
+            trim: true
+        },
+        country: {
+            type: String,
+            trim: true
+        },
+        gst_number: {
+            type: String,
+        },
         zohoContactStatus: {
             type: String
+        },
+        customer_id:{
+            type:String
         }
     },
     {timestamps:true}

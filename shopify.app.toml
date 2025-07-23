@@ -3,7 +3,7 @@
 client_id = "cc64e74cba8f6ce24463bb3910ddb555"
 name = "Company Registration"
 handle = "company-registration"
-application_url = "https://bridges-baghdad-delicious-celebrities.trycloudflare.com"
+application_url = "https://consequences-survey-supplements-food.trycloudflare.com"
 embedded = true
 
 [build]
@@ -18,7 +18,7 @@ api_version = "2025-04"
 scopes ="read_products,write_products,read_orders"
 
 [auth]
-redirect_urls = ["https://bridges-baghdad-delicious-celebrities.trycloudflare.com/auth/callback", "https://bridges-baghdad-delicious-celebrities.trycloudflare.com/auth/shopify/callback", "https://bridges-baghdad-delicious-celebrities.trycloudflare.com/api/auth/callback"]
+redirect_urls = ["https://consequences-survey-supplements-food.trycloudflare.com/auth/callback", "https://consequences-survey-supplements-food.trycloudflare.com/auth/shopify/callback", "https://consequences-survey-supplements-food.trycloudflare.com/api/auth/callback"]
 
 [pos]
 embedded = false

@@ -1,7 +1,9 @@
-import { Product } from "../../models/product/productModels.js";
-import { createZohoProduct } from "../../services/zoho/productCreation.js";
 import axios from "axios";
 import delay from 'delay';
+
+import { Product } from "../../models/product/productModels.js";
+import { createZohoProduct } from "../../services/zoho/productCreation.js";
+import { updateZohoProduct } from "../../services/zoho/productUpdate.js";
 
 const ZOHO_VARIANT_SYNC_DELAY_MS = 350;
 
@@ -23,13 +25,7 @@ const syncProducts = async (_req, res) => {
               title
               handle
               productType
-              description
               vendor
-              tags
-              status
-              createdAt
-              updatedAt
-              publishedAt
               options(first: 3) {
                 name
                 values
@@ -46,11 +42,8 @@ const syncProducts = async (_req, res) => {
                   id
                   title
                   sku
-                  barcode
                   price
-                  compareAtPrice
-                  inventoryQuantity
-                  inventoryPolicy
+                  taxable
                   selectedOptions {
                     name
                     value
@@ -92,37 +85,52 @@ const syncProducts = async (_req, res) => {
 
       if (productsData.edges.length > 0) {
         for (const edge of productsData.edges) {
-          const productNode = edge.node;
+          const shopifyProduct = edge.node;
 
           // Loop through variants for each product
-          for (const variant of productNode.variants.nodes) {
+          for (const shopifyVariant of shopifyProduct.variants.nodes) {
 
             try {
 
-              let zoho_item_id = await createZohoProduct({ productNode, variant });
-              await Product.updateOne(
-                {
-                  shop,
-                  shopify_product_id: productNode.id,
-                  shopify_variant_id: variant.id,
-                },
-                {
-                  $set: {
-                    sku: variant.sku,
-                    zoho_item_id:zoho_item_id,
+              const itemExists = await Product.findOne({ shopify_variant_id: shopifyVariant.id.split('/').pop() });
+              if (!itemExists) {
+                const zoho_item_id = await createZohoProduct(shopifyProduct, shopifyVariant);
+                if (zoho_item_id) {
+                  const newProduct = new Product({
+                    shop: shop,
+                    shopify_product_id: shopifyProduct.id.split('/').pop(),
+                    shopify_variant_id: shopifyVariant.id.split('/').pop(),
+                    sku: shopifyVariant.sku,
+                    zoho_item_id: zoho_item_id,
                     last_synced_at: new Date().toISOString()
-                  },
-                  $setOnInsert: { shop },
-                },
-                { upsert: true }
-              );
-
+                  });
+                  await newProduct.save();
+                }
+              } else {
+                const zoho_item_id = itemExists.zoho_item_id;
+                const result = await updateZohoProduct(shopifyProduct, shopifyVariant, zoho_item_id);
+                if (result) {
+                  await Product.updateOne(
+                    {
+                      shop,
+                      shopify_product_id: shopifyProduct.id.split('/').pop(),
+                      shopify_variant_id: shopifyVariant.id.split('/').pop(),
+                    },
+                    {
+                      $set: {
+                        sku: shopifyVariant.sku,
+                        last_synced_at: new Date().toISOString()
+                      },
+                      $setOnInsert: { shop },
+                    },
+                    { upsert: true }
+                  );
+                }
+              }
             } catch (err) {
-              console.error(`Zoho sync failed for ${productNode.title} [${variant.sku}]:`, err?.message ?? err);
+              console.error(`Zoho sync failed for ${shopifyProduct.title} [${shopifyVariant.sku}]:`, err?.message ?? err);
             }
-
             await delay(ZOHO_VARIANT_SYNC_DELAY_MS);
-
           }
         }
       }
@@ -130,11 +138,10 @@ const syncProducts = async (_req, res) => {
       hasNextPage = productsData.pageInfo.hasNextPage;
       cursor = productsData.pageInfo.endCursor;
     }
-
-    res.status(200).send({ message: "All Products and Variants Successfully Synced!", products: productsData.edges });
+    res.status(200).send({ message: "All Products Successfully Synced to zoho." });
   } catch (error) {
-    console.error("Error fetching and storing products:", error);
-    res.status(500).send("Error fetching products");
+    console.error("Error fetching and syncing products:", error);
+    res.status(500).send("Error fetching & syncing products");
   }
 };
 

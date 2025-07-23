@@ -4,6 +4,7 @@
 
 # Dependency directory
 node_modules
+temp_images
 
 # Test coverage directory
 coverage
@@ -26,6 +27,7 @@ extensions/*/build
 
 # Node library SQLite database
 web/database.sqlite
+
 
 # Ignore shopify files created during app dev
 .shopify/*
